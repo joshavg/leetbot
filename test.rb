@@ -62,7 +62,7 @@ class IRCClient
     end
 
     def connected
-        write 'JOIN #bots'
+        @channels.each { |c| write "JOIN #{c}" }
     end
 
     private
@@ -129,5 +129,5 @@ c = IRCClient.new ['#warofmadness']
 w = Leetwriter.new c
 c.addListener w
 
-c.connect "192.168.115.151"
+#c.connect "192.168.115.151"
 c.connect 'irc.quakenet.org'
