@@ -10,17 +10,15 @@ end
 class IRCClient
 
     @@logger = Logger.new STDOUT
-    @socket
-    @channels
 
     public
     def initialize channels
-        @@logger.info 'init'
+        @@logger.debug 'init'
         @listeners = [self]
         @channels = channels
     end
 
-    def addListener(listener)
+    def add_listener(listener)
         @listeners.push listener
     end
 
@@ -127,7 +125,6 @@ end
 c = IRCClient.new ['#warofmadness']
 
 w = Leetwriter.new c
-c.addListener w
+c.add_listener w
 
-#c.connect "192.168.115.151"
 c.connect 'irc.quakenet.org'
