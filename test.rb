@@ -122,9 +122,9 @@ class Leetwriter
     end
 end
 
-c = IRCClient.new ['#warofmadness']
+c = IRCClient.new ['#DINGE']
 
 w = Leetwriter.new c
 c.add_listener w
 
-c.connect 'irc.quakenet.org'
+c.connect 'serverurl'
