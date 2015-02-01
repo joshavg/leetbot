@@ -122,9 +122,15 @@ class Leetwriter
     end
 end
 
-c = IRCClient.new ['#DINGE']
+server = ARGV[0]
+port = ARGV[1]
+
+channels = ARGV.last(ARGV.length - 2)
+channels.map! { |c| "##{c}" }
+
+c = IRCClient.new [ channels ]
 
 w = Leetwriter.new c
 c.add_listener w
 
-c.connect 'serverurl'
+c.connect server, port
