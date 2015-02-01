@@ -60,7 +60,7 @@ class IRCClient
     end
 
     def connected
-        @channels.each { |c| write "JOIN #{c}" }
+		@channels.each { |c| write "JOIN " + c }
     end
 
     private
@@ -102,21 +102,17 @@ class Leetwriter
     end
 
     def accept(parsed, line)
+		puts
+        puts parsed
+        puts line
+        puts
     end
     
     def connected
         Thread.new do
             while true do
-                now = Time.new
-                @@logger.debug "checking, #{now.hour}:#{now.min}"
-                
-                if now.hour == 13 && now.min == 37 then
-                    @@logger.debug "broadcasting leet"
-                    @client.broadcast "leet"
-                    sleep 60
-                else
-                    sleep 10
-                end
+                @client.write "TIME"
+                sleep 10
             end
         end
     end
@@ -128,7 +124,7 @@ port = ARGV[1]
 channels = ARGV.last(ARGV.length - 2)
 channels.map! { |c| "##{c}" }
 
-c = IRCClient.new [ channels ]
+c = IRCClient.new channels
 
 w = Leetwriter.new c
 c.add_listener w
