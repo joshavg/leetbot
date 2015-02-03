@@ -43,7 +43,7 @@ class IRCClient
             parsed = parse_line line
 
             @@logger.debug "incoming: #{line.strip}"
-            @@logger.debug parsed
+            #@@logger.debug parsed
 
             if parsed[:code] == 376 then
                 @listeners.each { |l| l.connected }
@@ -60,35 +60,66 @@ class IRCClient
     end
 
     def connected
-		@channels.each { |c| write "JOIN " + c }
+        @channels.each { |c| write "JOIN " + c }
     end
 
     private
     def parse_line(line)
-        parts = line.split ' '
-
-        if parts[0] == 'PING' then
-            command = 'PING'
-            value = parts[1]
-        else
-            value = nil
-            ident = if parts[0].start_with? ':' then parts[0] else nil end
-            code = if parts[1].is_number? then parts[1] else nil end
-            command = if !parts[1].is_number? then parts[1] else nil end
-        end
-
-        if line.count(':') == 2 then
-            value = (line.split ':')[2].strip
-            channel = parts[2]
+        # :nick!~realname@server command channel :msg
+        # :leetbot!leetbot@i.love.debian.org MODE leetbot :+i
+        # :leetbot!leetbot@i.love.debian.org JOIN :#bots
+        messageMatcher = /:(\S+)!(\S+)@(\S+) (\S+) (\S+)?( )?:(.*)/.match line
+        # :server code nick server :msg
+        #:hybrid7.debian.local 372 leetbot :- -- Aurélien GÉRÔME <ag@roxor.cx>
+        #:hybrid7.debian.local 376 leetbot :End of /MOTD command.
+        systemNumericMatcher = /:(\S+) ([0-9]+) (\S+) (\S+)?( )?:?(.*)/.match line
+        #:hybrid7.debian.local NOTICE AUTH :*** No Ident response
+        systemCharMatcher = /:(\S+) (\S+) (\S+) :(.*)/.match line
+        #:hybrid7.debian.local MODE #bots +nt
+        channelMatcher = /:(\S+) (\S+) (#\S+) (\S+)/.match line
+        # P[I|O]NG :payload
+        pingMatcher = /(P[I|O]NG) :(.*)/.match line
+        
+        parsed = nil
+        if messageMatcher then
+            parsed = {
+                :nick => messageMatcher[1],
+                :user => messageMatcher[2],
+                :server => messageMatcher[3],
+                :cmd => messageMatcher[4],
+                :target => messageMatcher[5],
+                :payload => messageMatcher[7]
+            }
+        elsif channelMatcher then
+            parsed = {
+                :server => channelMatcher[1],
+                :cmd => channelMatcher[2],
+                :channel => channelMatcher[3],
+                :payload => channelMatcher[4]   
+            }
+        elsif systemNumericMatcher then
+            parsed = {
+                :server => systemNumericMatcher[1],
+                :code => systemNumericMatcher[2].to_i,
+                :nick => systemNumericMatcher[3],
+                :ident => systemNumericMatcher[4],
+                :payload => systemNumericMatcher[6]
+            }
+        elsif systemCharMatcher then
+            parsed = {
+                :server => systemCharMatcher[1],
+                :type => systemCharMatcher[2],
+                :cmd => systemCharMatcher[3],
+                :payload => systemCharMatcher[4]
+            }
+        elsif pingMatcher then
+            parsed = {
+                :cmd => pingMatcher[1],
+                :payload => pingMatcher[2]
+            }
         end
         
-        {
-            :ident => ident,
-            :code => code.to_i,
-            :command => command,
-            :value => value,
-            :channel => channel
-        }
+        return parsed
     end
 end
 
@@ -102,10 +133,7 @@ class Leetwriter
     end
 
     def accept(parsed, line)
-		puts
-        puts parsed
-        puts line
-        puts
+        
     end
     
     def connected
