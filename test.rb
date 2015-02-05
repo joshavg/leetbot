@@ -44,8 +44,8 @@ class IRCClient
 
             @@logger.debug "incoming: #{line.strip}"
             #@@logger.debug parsed
-
-            if parsed[:code] == 376 then
+            
+            if parsed[:cmd] == '376' then
                 @listeners.each { |l| l.connected }
             else
                 @listeners.each { |l| l.accept parsed, line }
@@ -54,7 +54,7 @@ class IRCClient
     end
 
     def accept(parsed, line)
-        if parsed[:command] == 'PING' then
+        if parsed[:cmd] == 'PING' then
             write "PONG #{parsed[:value]}"
         end
     end
@@ -65,61 +65,12 @@ class IRCClient
 
     private
     def parse_line(line)
-        # :nick!~realname@server command channel :msg
-        # :leetbot!leetbot@i.love.debian.org MODE leetbot :+i
-        # :leetbot!leetbot@i.love.debian.org JOIN :#bots
-        messageMatcher = /:(\S+)!(\S+)@(\S+) (\S+) (\S+)?( )?:(.*)/.match line
-        # :server code nick server :msg
-        #:hybrid7.debian.local 372 leetbot :- -- Aurélien GÉRÔME <ag@roxor.cx>
-        #:hybrid7.debian.local 376 leetbot :End of /MOTD command.
-        systemNumericMatcher = /:(\S+) ([0-9]+) (\S+) (\S+)?( )?:?(.*)/.match line
-        #:hybrid7.debian.local NOTICE AUTH :*** No Ident response
-        systemCharMatcher = /:(\S+) (\S+) (\S+) :(.*)/.match line
-        #:hybrid7.debian.local MODE #bots +nt
-        channelMatcher = /:(\S+) (\S+) (#\S+) (\S+)/.match line
+        regexp = /^:((?<nick>\S+)!(?<user>\S+)@)?(?<server>\S+)\s(?<cmd>\S+)\s((?<target>\S+)\s)?((?<target2>\S+)\s)?((:(?<payload>.+))|(?<params>.*))$/
+        matcher = regexp.match line
         # P[I|O]NG :payload
-        pingMatcher = /(P[I|O]NG) :(.*)/.match line
+        pingMatcher = /(?<cmd>PING) :(?<payload>.*)/.match line
         
-        parsed = nil
-        if messageMatcher then
-            parsed = {
-                :nick => messageMatcher[1],
-                :user => messageMatcher[2],
-                :server => messageMatcher[3],
-                :cmd => messageMatcher[4],
-                :target => messageMatcher[5],
-                :payload => messageMatcher[7]
-            }
-        elsif channelMatcher then
-            parsed = {
-                :server => channelMatcher[1],
-                :cmd => channelMatcher[2],
-                :channel => channelMatcher[3],
-                :payload => channelMatcher[4]   
-            }
-        elsif systemNumericMatcher then
-            parsed = {
-                :server => systemNumericMatcher[1],
-                :code => systemNumericMatcher[2].to_i,
-                :nick => systemNumericMatcher[3],
-                :ident => systemNumericMatcher[4],
-                :payload => systemNumericMatcher[6]
-            }
-        elsif systemCharMatcher then
-            parsed = {
-                :server => systemCharMatcher[1],
-                :type => systemCharMatcher[2],
-                :cmd => systemCharMatcher[3],
-                :payload => systemCharMatcher[4]
-            }
-        elsif pingMatcher then
-            parsed = {
-                :cmd => pingMatcher[1],
-                :payload => pingMatcher[2]
-            }
-        end
-        
-        return parsed
+        matcher == nil ? pingMatcher : matcher
     end
 end
 
@@ -145,6 +96,11 @@ class Leetwriter
         end
     end
 end
+
+r = /^:((?<nick>\S+)!(?<user>\S+)@)?(?<server>\S+)\s(?<cmd>\S+)\s((?<target>\S+)\s)?((?<target2>\S+)\s)?((:(?<payload>.+))|(?<params>.*))$/
+s = ":hybrid8.debian.local 391 leetbot hybrid8.debian.local :Thursday February 5 2015 -- 19:23:53 +01:00"
+puts (r.match s).inspect
+#exit
 
 server = ARGV[0]
 port = ARGV[1]
