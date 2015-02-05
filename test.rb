@@ -97,11 +97,6 @@ class Leetwriter
     end
 end
 
-r = /^:((?<nick>\S+)!(?<user>\S+)@)?(?<server>\S+)\s(?<cmd>\S+)\s((?<target>\S+)\s)?((?<target2>\S+)\s)?((:(?<payload>.+))|(?<params>.*))$/
-s = ":hybrid8.debian.local 391 leetbot hybrid8.debian.local :Thursday February 5 2015 -- 19:23:53 +01:00"
-puts (r.match s).inspect
-#exit
-
 server = ARGV[0]
 port = ARGV[1]
 
