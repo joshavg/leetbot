@@ -91,7 +91,7 @@ class Leetwriter
         	strtime = timevalue.split(" -- ").last
         	@@logger.debug("got #{strtime.strip} as string time")
         	
-        	# crappy irc rfc does not say which time format will be delivers,
+        	# crappy irc rfc does not say which time format will be delivered,
         	# so hard parsing will be the weapon of choice
         	dateTimeParts = strtime.split(" ")
         	datePart = dateTimeParts[0]
