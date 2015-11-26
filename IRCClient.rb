@@ -47,20 +47,20 @@ class IRCClient
             #@@logger.debug parsed
             
             if parsed[:cmd] == '376' then
-                @listeners.each { |l| l.connected }
+                @listeners.each { |l| l.connected self }
             else
-                @listeners.each { |l| l.accept parsed, line }
+                @listeners.each { |l| l.accept parsed, line, self }
             end
         end
     end
 
-    def accept(parsed, line)
+    def accept(parsed, line, client)
         if parsed[:cmd] == "PING" then
             write "PONG #{parsed[:payload]}"
         end
     end
 
-    def connected
+    def connected(client)
         @channels.each { |c| write "JOIN " + c }
     end
 
@@ -74,58 +74,3 @@ class IRCClient
         pingMatcher != nil ? pingMatcher : matcher
     end
 end
-
-class Leetwriter
-
-    @@logger = Logger.new STDOUT
-
-    def initialize client
-        @client = client
-        Thread.abort_on_exception = true
-    end
-
-    def accept(parsed, line)
-        if parsed[:cmd] == "391" then
-        	# contains something like 19:23:53 +01:00
-        	timevalue = parsed[:payload] == nil ? parsed[:params] : parsed[:payload]
-        	strtime = timevalue.split(" -- ").last
-        	@@logger.debug("got #{strtime.strip} as string time")
-        	
-        	# crappy irc rfc does not say which time format will be delivered,
-        	# so hard parsing will be the weapon of choice
-        	dateTimeParts = strtime.split(" ")
-        	datePart = dateTimeParts[0]
-        	#timePart = dateTimeParts[1]
-        	hour = datePart.split(":").first
-        	minute = datePart.split(":")[1]
-        	
-        	@@logger.debug("hour is #{hour}, minute is #{minute}")
-        	
-        	if hour == "13" and minute == "37" then
-        	    @client.broadcast "leet"
-    	    end
-        end
-    end
-    
-    def connected
-        Thread.new do
-            while true do
-                @client.write "TIME"
-                sleep 10
-            end
-        end
-    end
-end
-
-server = ARGV[0]
-port = ARGV[1]
-
-channels = ARGV.last(ARGV.length - 2)
-channels.map! { |c| "##{c}" }
-
-c = IRCClient.new channels
-
-w = Leetwriter.new c
-c.add_listener w
-
-c.connect server, port
