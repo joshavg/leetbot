@@ -12,9 +12,12 @@ class Leetwriter
 
   def accept(parsed, line, client)
     if parsed[:cmd] == "391" then
+      parts = line.split " -- "
+      strtime = parts.last
+      
       # contains something like 19:23:53 +01:00
-      timevalue = parsed[:payload]
-      strtime = timevalue.split(" -- ").last
+      # timevalue = parsed[:payload]
+      # strtime = timevalue.split(" -- ").last
       @@logger.debug("got #{strtime.strip} as string time")
 
       # crappy irc rfc does not say which time format will be delivered,

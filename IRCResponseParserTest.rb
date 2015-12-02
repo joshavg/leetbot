@@ -95,6 +95,16 @@ assert parser.parts[:payload] == 'Thursday February 5 2015 -- 19:23:53 +01:00', 
 assert parser.parts[:unparseable] == nil, 'unparseable'
 puts
 
+#parser = IRCResponseParser.new 'port80a.se.quakenet.org 391 leetbot port80a.se.quakenet.org 1449057761 3 :Wednesday December 2 2015 -- 13:02 +01:00'
+#puts parser.parts
+#assert parser.parts[:server] == 'port80a.se.quakenet.org', 'server'
+#assert parser.parts[:cmd] == '391', 'cmd'
+#assert parser.parts[:target] == 'leetbot', 'target'
+#assert parser.parts[:server_name] == 'port80a.se.quakenet.org', 'server_name'
+#assert parser.parts[:payload] == 'Thursday February 5 2015 -- 19:23:53 +01:00', 'payload'
+#assert parser.parts[:unparseable] == nil, 'unparseable'
+#puts
+
 parser = IRCResponseParser.new 'PING : payload '
 puts parser.parts
 assert parser.parts[:payload] == 'payload', 'payload'

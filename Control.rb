@@ -11,6 +11,7 @@ class Control
 
   def accept(parsed, line, client)
     # {:nick=>"josha", :user=>"~jgizycki", :server=>"192.168.115.109", :cmd=>"PRIVMSG", :target=>"leetbot", :payload=>"sad"}
+    return
     if parsed[:cmd] == "PRIVMSG"
       react parsed, client
     end
