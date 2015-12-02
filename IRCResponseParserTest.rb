@@ -3,7 +3,7 @@
 require_relative 'IRCResponseParser'
 
 def assert(bool, watt)
-    puts "================= " + watt unless bool
+  puts "================= " + watt unless bool
 end
 
 parser = IRCResponseParser.new ':leetbot!userleetbot@i.love.debian.org MODE targetleetbot :+i'
