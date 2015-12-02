@@ -5,13 +5,10 @@ class IRCResponseParser
     @parts
     @user_server_regex
     @nextstep
-    @verbose
 
     attr_reader :parts
 
-    def initialize(line, verbose = false)
-        puts line
-        @verbose = verbose
+    def initialize(line)
         @line = line
         @parts = {}
         @user_server_regex = /^([^!]+)!([^@]+)@(.+)$/
@@ -24,13 +21,7 @@ class IRCResponseParser
             devline = @line.slice 1, @line.size - 1
             index = 0
             
-            log
-            log devline
             devline.split(' ').each do |token|
-                log
-                log 'step:  ' + @nextstep.to_s unless @nextstep.nil?
-                log 'token: ' + token
-                
                 if @nextstep.nil? then
                     if @user_server_regex.match token then
                         parse_user_server_ident token
@@ -51,7 +42,6 @@ class IRCResponseParser
                         when :switch_target_payload then
                             if token[0] == ':' then
                                 rest_as_payload index
-                                #@parts[:payload] = devline.slice index + 1, devline.size
                                 break
                             else
                                 @parts[:target] = token
@@ -66,7 +56,6 @@ class IRCResponseParser
                         when :switch_server_name_payload then
                             if token[0] == ':' then
                                 rest_as_payload index
-                                #@parts[:payload] = devline.slice index + 1, devline.size
                                 break
                             else
                                 @parts[:server_name] = token
@@ -78,7 +67,6 @@ class IRCResponseParser
                         when :switch_server_version_payload then
                             if token[0] == ':' then
                                 rest_as_payload index
-                                #@parts[:payload] = devline.slice index + 1, devline.size
                                 break
                             else
                                 write_part :server_version, token, :user_modes
@@ -103,8 +91,6 @@ class IRCResponseParser
             @parts[:cmd] = 'PING'
             @parts[:payload] = @line.split(':')[1].strip
         end
-
-        log @parts
     end
 
     def parse_user_server_ident(token)
@@ -121,10 +107,6 @@ class IRCResponseParser
 
     def rest_as_payload(index)
         @parts[:payload] = @line.slice index + 2, @line.size
-    end
-
-    def log(msg = '')
-        puts msg if @verbose
     end
 
 end

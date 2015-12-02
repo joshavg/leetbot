@@ -1,6 +1,9 @@
+# encoding: utf-8
+
 require 'socket'
 require 'logger'
 require 'date'
+require_relative 'IRCResponseParser'
 
 class Object
     def is_number?
@@ -44,7 +47,6 @@ class IRCClient
             parsed = parse_line line
 
             @@logger.debug "incoming: #{line.strip}"
-            #@@logger.debug parsed
             
             if parsed[:cmd] == '376' then
                 @listeners.each { |l| l.connected self }
@@ -66,11 +68,7 @@ class IRCClient
 
     private
     def parse_line(line)
-        regexp = /^:?((?<nick>\S+)!(?<user>\S+)@)?(?<server>\S+)\s(?<cmd>\S+)\s((?<target>\S+)\s)?((?<target2>\S+)\s)?((:(?<payload>.+))|(?<params>.*))$/
-        matcher = regexp.match line
-        # P[I|O]NG :payload
-        pingMatcher = /(?<cmd>PING) :(?<payload>.*)/.match line
-        
-        pingMatcher != nil ? pingMatcher : matcher
+        parser = IRCResponseParser.new line
+        parser.parts
     end
 end
