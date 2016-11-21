@@ -4,7 +4,7 @@ require 'socket'
 require 'logger'
 require 'date'
 
-require_relative 'IRCResponseParser'
+require_relative 'IRCResponseParser2'
 
 class Object
   def is_number?
@@ -15,12 +15,15 @@ end
 class IRCClient
 
   @@logger = Logger.new STDOUT
+  
+  attr_accessor :nick
 
   public
   def initialize channels
     @@logger.debug 'init'
     @listeners = [self]
     @channels = channels
+    @nick = 'leetbot'
   end
 
   def add_listener(listener)
@@ -41,13 +44,13 @@ class IRCClient
 
   def connect(host, port = 6667)
     @socket = TCPSocket.open(host, port)
-    write 'USER leetbot 0 * :leetbot'
-    write 'NICK leetbot'
+    write IRCMessage.user @nick
+    write IRCMessage.nick @nick
 
     while line = @socket.readline do
-      parsed = parse_line line
-
       @@logger.debug "incoming: #{line.strip}"
+      parsed = parse_line line
+      @@logger.debug parsed
 
       if parsed[:cmd] == '376' then
         @listeners.each { |l|
@@ -68,14 +71,13 @@ class IRCClient
   end
 
   def connected(client)
-    @channels.each { |c| write "JOIN " + c }
+    @channels.each { |c| write "JOIN #{c}" }
   end
 
   private
 
   def parse_line(line)
-    parser = IRCResponseParser.new line
-    @@logger.debug parser.parts
+    parser = IRCResponseParser2.new line
     parser.parts
   end
 end
