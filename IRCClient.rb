@@ -21,10 +21,9 @@ class IRCClient
   attr_reader :listeners
 
   public
-  def initialize channels
+  def initialize
     @@logger.debug 'init'
     @listeners = [self]
-    @channels = channels
     @nick = 'leetbot'
   end
 
@@ -35,13 +34,6 @@ class IRCClient
   def write(msg)
     @@logger.debug "outgoing: #{msg}"
     @socket.write msg + "\r\n"
-  end
-
-  def broadcast(msg)
-    @@logger.debug "broadcasting #{msg}"
-    @channels.each { |c|
-      write "PRIVMSG #{c} #{msg}"
-    }
   end
 
   def connect(host, port = 6667)
@@ -79,8 +71,9 @@ class IRCClient
     end
   end
 
+  # move to autojoiner/channeltracker
   def connected(client)
-    @channels.each { |c| write IRCMessage.join(c) }
+    # @channels.each { |c| write IRCMessage.join(c) }
   end
 
   private
