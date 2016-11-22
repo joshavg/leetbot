@@ -5,6 +5,7 @@ require 'logger'
 require 'date'
 
 require_relative 'IRCResponseParser2'
+require_relative 'IRCMessage'
 
 class Object
   def is_number?
@@ -17,6 +18,7 @@ class IRCClient
   @@logger = Logger.new STDOUT
   
   attr_accessor :nick
+  attr_reader :listeners
 
   public
   def initialize channels
@@ -54,14 +56,21 @@ class IRCClient
 
       if parsed[:cmd] == '376' then
         @listeners.each { |l|
-          l.connected(self) if l.respond_to? 'connected'
+          l.connected(self) if l.respond_to? "connected"
         }
       else
         @listeners.each { |l|
-          l.accept(parsed, line, self) if l.respond_to? 'accept'
+          l.accept(parsed, line, self) if l.respond_to? "accept"
         }
       end
     end
+  end
+  
+  def quit!
+    @listeners.each { |l|
+      l.quit_called(self) if l.respond_to? "quit_called"
+    }
+    @socket.close
   end
 
   def accept(parsed, line, client)
@@ -71,7 +80,7 @@ class IRCClient
   end
 
   def connected(client)
-    @channels.each { |c| write "JOIN #{c}" }
+    @channels.each { |c| write IRCMessage.join(c) }
   end
 
   private

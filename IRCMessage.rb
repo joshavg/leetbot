@@ -10,4 +10,8 @@ class IRCMessage
   def IRCMessage.user(name)
     "USER #{name} 0 * :#{name}"
   end
+  
+  def IRCMessage.join(channel)
+    "JOIN #{channel}"
+  end
 end

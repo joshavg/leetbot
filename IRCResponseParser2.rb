@@ -15,23 +15,16 @@
 class IRCResponseParser2
 
   attr_reader :parts
-
-  public
-  def IRCResponseParser2.parse msg
-    parser = IRCResponseParser2.new msg
-    parser.parts
-  end
   
-  private
   def initialize msg
     @parts = {}
     workmsg = msg
     
-    if workmsg[0] != ':'
-      workmsg = ':' + workmsg
+    if workmsg[0] != ":"
+      workmsg = ":" + workmsg
     end
     
-    parts = (' ' + workmsg).split ' :'
+    parts = (" " + workmsg).split " :"
     if parts.length < 1 then
       return
     end
@@ -42,7 +35,7 @@ class IRCResponseParser2
     end
     header = parts[1]
     
-    hp = header.split(' ')
+    hp = header.split(" ")
     
     is_ping = false
     # user ident
@@ -51,7 +44,7 @@ class IRCResponseParser2
       @parts[:user] = $2
       @parts[:server] = $3
     else
-      if hp[0] == 'PING' then
+      if hp[0] == "PING" then
         @parts[:cmd] = hp[0]
         is_ping = true
       else
